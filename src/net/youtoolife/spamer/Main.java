@@ -1,14 +1,10 @@
 package net.youtoolife.spamer;
 
-
-import java.util.Arrays;
-
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import net.youtoolife.spamer.view.MainController;
-import net.youtoolife.tools.RSAISA;
 import javafx.scene.Scene;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;

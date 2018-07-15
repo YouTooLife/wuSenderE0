@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -13,8 +11,6 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
-import javax.xml.bind.DatatypeConverter;
 
 import com.google.gson.Gson;
 
@@ -43,7 +39,7 @@ import net.youtoolife.tools.Sender;
 import net.youtoolife.tools.Sender2;
 import net.youtoolife.tools.XlsParcer;
 
-public class MainController {
+public class MainControllerWA {
 	
 	
 	@FXML
@@ -111,11 +107,11 @@ public class MainController {
 	
 	
 	
-	private String imgToUp = "";
+	private String imgToUp = null;
 	private byte[] blob = null;
 
    
-    public MainController() {
+    public MainControllerWA() {
     	
     }
     
@@ -165,8 +161,10 @@ public class MainController {
 		
 		//titleField.setDisable(true);
 		
-		sender = new Sender(this);
-		sender2 = new Sender2(this);
+		//sender = new Sender(this);
+		//sender2 = new Sender2(this);
+		addUserBtn.setVisible(false);
+		addUserBtn.setDisable(true);
 		
 		qLabel.textProperty().bind(value1);
 		sendsLabel.textProperty().bind(value2);
@@ -232,7 +230,7 @@ public class MainController {
 	
 	@FXML
     private void startBtn() {
-		System.out.println("Start Btn");
+		System.out.println("Start");
 		
 		
 		if (run) {
@@ -241,59 +239,50 @@ public class MainController {
 			sendTask.cancel();
 		}
 		else {
-			
-			startBtn.setText("Stop");
-			
 			run = true;
 			
 			delay = Integer.parseInt(sleepField.getText());
 			settings.title = titleField.getText();
 			settings.url = urlField.getText();
 			
-
+			/*main.dbHandler = new Thread(new DBHandler(this));
+			main.sender = new Thread(new Sender(this));
+			main.dbHandler.start();
+			main.sender.start();*/
 			String body = area.getText();
-			
-			sender = new Sender(this);
-			
-			
 	        sendTask = new Task<Void>() {
-	        	
-	        	boolean stop_flag = false; 
-	        	
 	            @Override 
 	            public Void call() {
 	            	
 	            	ObservableList<String> nums = listView.getItems();
-	            	//for (String number:nums) {
+	            	for (String number:nums) {
 	            		//String number = "";
 	            		//for (int i = 0; i < nums.size(); i++) 
-	            		//	number += nums.get(i) + (i < (nums.size()-1)?",":"");
+	            			//number += nums.get(i) + (i < (nums.size()-1)?",":"");
 	            		
-	            	ArrayList<String> arr = new ArrayList<>(nums);
-	            	System.out.println("arr size: " + arr.size());
-	            	
-	            String str = sender.run(arr, body, imgToUp, null);
-	            
-	            if (str != null && !str.isEmpty()) {
-	            	System.out.println("stop runnable sender");
-	            	stop_flag = true;
+	            	//String str = sender.run(number, body, imgToUp, blob);
+	            		
           		Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                            	stop_flag = false;
                             	//val0.set(val0.get()+1);
-                            	value3.set(value3.get()+"\n"+str);
-                            	//value1.setValue(String.format("Очередь: %d", nums.size() - val0.get()));
-                            	val0.set(arr.size());
+                            	//value3.set(value3.get()+"\n"+str);
+                            	value1.setValue(String.format("Очередь: %d", nums.size() 
+                            			-(val0.get()>nums.size()?val0.get()%nums.size():val0.get()) ));
                                 value2.setValue(String.format("Отправлено: %d", val0.get()));
-                                console.setScrollTop(Double.MAX_VALUE);
                                 
+                                console.setScrollTop(Double.MAX_VALUE);
                             }
                         });
+          		try {
+          			//System.out.println("getDelay() = "+getDelay());
+					Thread.sleep(getDelay());
+					//System.out.println("next...");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 	            }
-	            while (stop_flag) {}
-	            System.out.println("continue runnable sender");
-	            
+	            	
           		return null;
 	            }
 
@@ -304,7 +293,6 @@ public class MainController {
 	                startBtn.setText("Start");
 	                value3.set(value3.get()+"\nВсе сообщения отправлены!");
 	                value2.setValue(String.format("Отправлено: %d - Done!", val0.get()));
-	                console.setScrollTop(Double.MAX_VALUE);
 	            }
 
 	            @Override 
@@ -317,8 +305,9 @@ public class MainController {
 	            super.failed();
 	            }
 	        };
-	        
 	        exec.execute(sendTask);
+	        
+			startBtn.setText("Stop");
 		}
 		
 	}
@@ -345,13 +334,12 @@ public class MainController {
 			settings.title = titleField.getText();
 			settings.url = urlField.getText();
 			
-			sender2 = new Sender2(this);
-			
+			/*main.dbHandler = new Thread(new DBHandler(this));
+			main.sender = new Thread(new Sender(this));
+			main.dbHandler.start();
+			main.sender.start();*/
 			String body = area.getText();
 	        sendTask = new Task<Void>() {
-	        	
-	        	boolean stop_flag = false;
-	        	
 	            @Override 
 	            public Void call() {
 	            	
@@ -360,8 +348,6 @@ public class MainController {
 	            		
 	            	String str = sender2.run(number, body);
 	            		
-	            if (str != null && !str.isEmpty()) {
-	            	stop_flag = true;
           		Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
@@ -369,12 +355,8 @@ public class MainController {
                             	value3.set(value3.get()+"\n"+str);
                             	value1.setValue(String.format("Очередь: %d", nums.size() - val0.get()));
                                 value2.setValue(String.format("Отправлено: %d", val0.get()));
-                                console.setScrollTop(Double.MAX_VALUE);
-                                stop_flag = false;
                             }
                         });
-	            }
-	            while (stop_flag) {}
           		try {
           			//System.out.println("getDelay() = "+getDelay());
 					Thread.sleep(getDelay());
@@ -394,7 +376,6 @@ public class MainController {
 	                addUserBtn.setText("Add users");
 	                value3.set(value3.get()+"\nВсе сообщения отправлены!");
 	                value2.setValue(String.format("Отправлено: %d - Done!", val0.get()));
-	                console.setScrollTop(Double.MAX_VALUE);
 	            }
 
 	            @Override 
@@ -499,12 +480,22 @@ public class MainController {
 	@FXML
     private void openImgBtn() {
 		
+		/*
 		if (blob != null) {
 			blob = null;
 			imgToUp = "";
 			imgUpload.setText("Upload img");
 			return;
 		}
+		*/
+		
+		if (imgToUp != null &&  !imgToUp.isEmpty()) {
+			imgToUp = null;
+			//imgToUp = "";
+			imgUpload.setText("Upload img");
+			return;
+		}
+		/*
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Choose a image");
         fileChooser.setInitialDirectory(
@@ -534,6 +525,8 @@ public class MainController {
 		
 		String fileName = selectedFile.getAbsolutePath();
 		openImage(fileName);
+		*/
+		openImage(null);
 	}
 	
 
@@ -583,13 +576,14 @@ public class MainController {
 	
 	public void openImage(String fileName) {
 		//imgToUp = getBytesToBlobStr(getBytesFromFile(fileName));
-		blob = getBytesFromFile(fileName);
+		//blob = getBytesFromFile(fileName);
 		//System.out.println("BYTES: \n"+imgToUp);
 		
 		//System.out.println("File: "+fileName+" : "+file.exists());
-		File f = new File(fileName);
-		imgToUp = f.getName();
+		//File f = new File(fileName);
+		//imgToUp = f.getName();
 		
+		/*
 		byte[] hash;
 		try {
 			hash = MessageDigest.getInstance("MD5").digest(blob);
@@ -601,39 +595,49 @@ public class MainController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		*/
+		/*
 		System.out.println(f.exists());
 		String uri = f.toURI().toString();
-			imgUp.setImage(new Image(uri));
+			imgUp.setImage(new Image(uri));*/
+		
 			
+			TextInputDialog dialog = new TextInputDialog("http://host.net/pic.png");
+			dialog.setTitle("input image's URL");
+			//dialog.setHeaderText("Look, a Text Input Dialog");
+			dialog.setContentText("Please input image's URL:");
+			Optional<String> result = dialog.showAndWait();
+			if (result.isPresent()){
+				imgToUp = result.get();
+			}
+		imgUp.setImage(new Image(imgToUp));
 		imgUpload.setText("Delete img");
 		
-		uploadImgThread();
+		
+		
+		//uploadImgThread();
 	}
 	
 	
 	private void uploadImgThread() {
 			System.out.println("Start");
 			
-			startBtn.setDisable(true);
 			settings.url = urlField.getText();
 
-			sender = new Sender(this);
 	        sendTask = new Task<Void>() {
 	            @Override 
 	            public Void call() {
 	           
 	            		
-	            String str = sender.run(null, "nop", imgToUp, blob);
+	            //String str = sender.run("777", "nop", imgToUp, blob);
 	            		
           		Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
                             	//val0.set(val0.get()+1);
-                            	value3.set(value3.get()+"\n"+str);
+                            	//value3.set(value3.get()+"\n"+str);
                             	//value1.setValue(String.format("Очередь: %d", nums.size() - val0.get()));
                                 //value2.setValue(String.format("Отправлено: %d", val0.get()));
-                            	console.setScrollTop(Double.MAX_VALUE);
                             }
                         });
 	            	
@@ -645,8 +649,6 @@ public class MainController {
 	                super.succeeded();
 	               
 	                value3.set(value3.get()+"\nИзображение отправлено!");
-	                startBtn.setDisable(false);
-	                console.setScrollTop(Double.MAX_VALUE);
 	                //value2.setValue(String.format("Отправлено: %d - Done!", val0.get()));
 	            }
 
